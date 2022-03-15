@@ -22,7 +22,7 @@ public class CameraMove : MonoBehaviour
     }
     void LateUpdate()
     {
- 
+        if(!GameManager.Instance._gameIsStart) return;
         _currentX += Input.GetAxis("Mouse X") * _sensivity * Time.deltaTime;
         _currentY += Input.GetAxis("Mouse Y") * _sensivity * Time.deltaTime;
  

@@ -27,7 +27,7 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
-        {
+        {   _mainMenu.SetActive(false);
             if (_gameIsPause)
             {
                 ContinueGame();
@@ -54,12 +54,14 @@ public class GameManager : MonoBehaviour
     }
     public void ContinueGame()
     {
-        _pauseMenu.SetActive(false);
+
         Time.timeScale = 1f;
         _gameIsPause = false;
+
     }
     public void Exit()
     {
+        Debug.Log("_______QUIT________");
         Application.Quit();
     }
 

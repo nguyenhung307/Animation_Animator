@@ -6,7 +6,6 @@ public class PlayerMovement : MonoBehaviour
 {
     CharacterController _controller;
     [SerializeField] private Animator _animator;
-    [SerializeField] private float _speed;
     [SerializeField] private Transform _cam;
 
     private bool _isGrounded;
@@ -15,52 +14,48 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float _jumpForce;
     [SerializeField] private float _gravity = -9.81f;
     private Vector3 _velocity;
-
     [SerializeField] private float _currentSpeed;
     [SerializeField] private float _maxSpeed;
+    private bool _stopMove;
 
     void Start()
     {
+        _currentSpeed = 0;
         _controller = GetComponent<CharacterController>();
     }
 
     void Update()
-    { if(!GameManager.Instance._gameIsStart) return;
+    {
+        if(!GameManager.Instance._gameIsStart) return;
         _isGrounded = Physics.CheckSphere(_groundCheck.position, 0.3f, _layerGround);
         PlayerMove();
     }
-
     public void PlayerMove()
     {
         float horizontal = Input.GetAxis("Horizontal") ;
         float vertical = Input.GetAxis("Vertical") ;
-        _animator.SetFloat("left_right", vertical);
-
-        if (horizontal != 0)
-        {
-            _currentSpeed += 10 * Time.deltaTime * vertical;
+        ControllerAni(horizontal,vertical);
+        if(vertical != 0){
+            _currentSpeed += Time.deltaTime * vertical;
             _currentSpeed = Mathf.Clamp(_currentSpeed, -_maxSpeed, _maxSpeed);
         }
-        else
-        {
-            if (_currentSpeed < 0)
-            {
+        else{
+            if( _currentSpeed < 0){
                 _currentSpeed += Time.deltaTime;
                 _currentSpeed = Mathf.Clamp(_currentSpeed, -_maxSpeed, 0);
             }
-            else if (_currentSpeed > 0)
-            {
+            if(_currentSpeed > 0){
                 _currentSpeed -= Time.deltaTime;
                 _currentSpeed = Mathf.Clamp(_currentSpeed, 0, _maxSpeed);
             }
         }
-
-        Vector3 moveDir = _cam.transform.right * horizontal * _currentSpeed * Time.deltaTime + _cam.transform.forward * vertical * _currentSpeed * Time.deltaTime;
-        moveDir.y = 0f;
-        _animator.SetFloat("_speed", _currentSpeed);
-        _controller.Move(moveDir);
-
+        _animator.SetFloat("_speed", _currentSpeed );
         
+         Vector3 moveDir = _cam.transform.right * horizontal * _currentSpeed * Time.deltaTime + _cam.transform.forward * _currentSpeed * Time.deltaTime;
+         moveDir.y = 0f;
+
+         _controller.Move(moveDir);
+    
         if (_isGrounded && _velocity.y < 0)
         {
             _velocity.y = -1f;
@@ -78,7 +73,6 @@ public class PlayerMovement : MonoBehaviour
             Quaternion camRotation = _cam.rotation;
             camRotation.x = 0f;
             camRotation.z = 0f;
-
             transform.rotation = Quaternion.Lerp(transform.rotation, camRotation, 0.1f);
         }
     }
@@ -89,14 +83,30 @@ public class PlayerMovement : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log(other.gameObject.name);
         if (other.gameObject.CompareTag("ObstanceSmall"))
         {
+
             _animator.SetTrigger("isFallingForward");
         }
         if (other.gameObject.CompareTag("ObstanceLarger"))
-        {
+        {  
+
             _animator.SetTrigger("isFallingBackward");
+        }
+    }
+
+    public void ControllerAni(float horizontal, float vertical){
+        if(horizontal > 0){
+            _animator.SetBool("move_left", true);
+        }
+        else if(horizontal < 0){
+            _animator.SetBool("move_right",true );
+        }
+        if( vertical > 0){
+            _animator.SetBool("move_forward", true);
+        }
+        if(vertical < 0){
+            _animator.SetBool("move_backward", true);
         }
     }
 }

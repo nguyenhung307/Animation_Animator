@@ -2908,7 +2908,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _animator: {fileID: 755075887}
-  _speed: 10
   _cam: {fileID: 162836621}
   _groundCheck: {fileID: 1943779048}
   _layerGround:
@@ -2917,7 +2916,7 @@ MonoBehaviour:
   _jumpForce: 5
   _gravity: -9.81
   _currentSpeed: 0
-  _maxSpeed: 15
+  _maxSpeed: 10
 --- !u!143 &1155418985
 CharacterController:
   m_ObjectHideFlags: 0
