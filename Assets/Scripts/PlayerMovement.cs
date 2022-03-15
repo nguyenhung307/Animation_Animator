@@ -4,83 +4,109 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-
-    [SerializeField] private CharacterController _controller;
-    [SerializeField] private float _speed;
+    CharacterController _controller;
     [SerializeField] private Animator _animator;
-    public float currentSpeed;
-    [SerializeField] private float _maxSpeed;
-    [SerializeField] private float _startSpeed;
+    [SerializeField] private Transform _cam;
+
     private bool _isGrounded;
     [SerializeField] private Transform _groundCheck;
     [SerializeField] private LayerMask _layerGround;
     [SerializeField] private float _jumpForce;
     [SerializeField] private float _gravity = -9.81f;
-    private Vector3 velocity;
-    private void Start()
+    private Vector3 _velocity;
+    [SerializeField] private float _currentSpeed;
+    [SerializeField] private float _maxSpeed;
+    private bool _stopMove;
+
+    void Start()
     {
-        currentSpeed = _startSpeed;
-        Cursor.lockState = CursorLockMode.Locked;
+        _currentSpeed = 0;
+        _controller = GetComponent<CharacterController>();
     }
+
     void Update()
     {
-            float x = Input.GetAxis("Horizontal");
-            float z = Input.GetAxis("Vertical");
-            Movement(x,z);
-
-    }
-    public void Movement(float forwardInput, float vertical)
-    {
-        // if (forwardInput != 0)
-        // {
-        //     currentSpeed += 10 * Time.deltaTime * forwardInput;
-        //     currentSpeed = Mathf.Clamp(currentSpeed, -_maxSpeed, _maxSpeed);
-        //     Debug.Log(currentSpeed);
-        // }
-        // else
-        // {
-        //     if (currentSpeed < 0)
-        //     {
-        //         currentSpeed += Time.deltaTime;
-        //         currentSpeed = Mathf.Clamp(currentSpeed, -_maxSpeed, 0);
-        //     }
-        //     else if (currentSpeed > 0)
-        //     {
-        //         currentSpeed -= Time.deltaTime;
-        //         currentSpeed = Mathf.Clamp(currentSpeed, 0, _maxSpeed);
-        //     }
-        // }
-        Vector3 move = transform.right * forwardInput + transform.forward * vertical;
-        _controller.Move(move * currentSpeed * Time.deltaTime);
-
-        _animator.SetFloat("_speed", Mathf.Abs(vertical));
-
+        if(!GameManager.Instance._gameIsStart) return;
         _isGrounded = Physics.CheckSphere(_groundCheck.position, 0.3f, _layerGround);
+        PlayerMove();
+    }
+    public void PlayerMove()
+    {
+        float horizontal = Input.GetAxis("Horizontal") ;
+        float vertical = Input.GetAxis("Vertical") ;
+        ControllerAni(horizontal,vertical);
+        if(vertical != 0){
+            _currentSpeed += Time.deltaTime * vertical;
+            _currentSpeed = Mathf.Clamp(_currentSpeed, -_maxSpeed, _maxSpeed);
+        }
+        else{
+            if( _currentSpeed < 0){
+                _currentSpeed += Time.deltaTime;
+                _currentSpeed = Mathf.Clamp(_currentSpeed, -_maxSpeed, 0);
+            }
+            if(_currentSpeed > 0){
+                _currentSpeed -= Time.deltaTime;
+                _currentSpeed = Mathf.Clamp(_currentSpeed, 0, _maxSpeed);
+            }
+        }
+        _animator.SetFloat("_speed", _currentSpeed );
+        
+         Vector3 moveDir = _cam.transform.right * horizontal * _currentSpeed * Time.deltaTime + _cam.transform.forward * _currentSpeed * Time.deltaTime;
+         moveDir.y = 0f;
 
-        if (_isGrounded && velocity.y < 0)
+         _controller.Move(moveDir);
+    
+        if (_isGrounded && _velocity.y < 0)
         {
-            velocity.y = -1f;
+            _velocity.y = -1f;
         }
         if (Input.GetButtonDown("Jump") && _isGrounded)
         {
             Jump();
         }
-        velocity.y += _gravity * Time.deltaTime;
-        _controller.Move(velocity * Time.deltaTime);
+        _velocity.y += _gravity * Time.deltaTime;
+        _controller.Move(_velocity * Time.deltaTime);
+
+        if (moveDir.magnitude != 0f)
+        {
+            transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * _cam.GetComponent<CameraMove>()._sensivity * Time.deltaTime);
+            Quaternion camRotation = _cam.rotation;
+            camRotation.x = 0f;
+            camRotation.z = 0f;
+            transform.rotation = Quaternion.Lerp(transform.rotation, camRotation, 0.1f);
+        }
     }
     private void Jump()
-    {  
-    //     _animator.SetBool("isJump", true);
-        velocity.y = Mathf.Sqrt(_jumpForce * -2f * _gravity);
+    {
+        _animator.SetTrigger("isJump");
+        _velocity.y = Mathf.Sqrt(_jumpForce * -2f * _gravity);
     }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("ObstanceSmall"))
+        {
 
-    private void OnTriggerEnter(Collider other) {
-        Debug.Log(other.gameObject.name);
-        if(other.gameObject.CompareTag("ObstanceSmall")){
             _animator.SetTrigger("isFallingForward");
         }
-        if(other.gameObject.CompareTag("ObstanceLarger")){
+        if (other.gameObject.CompareTag("ObstanceLarger"))
+        {  
+
             _animator.SetTrigger("isFallingBackward");
+        }
+    }
+
+    public void ControllerAni(float horizontal, float vertical){
+        if(horizontal > 0){
+            _animator.SetBool("move_left", true);
+        }
+        else if(horizontal < 0){
+            _animator.SetBool("move_right",true );
+        }
+        if( vertical > 0){
+            _animator.SetBool("move_forward", true);
+        }
+        if(vertical < 0){
+            _animator.SetBool("move_backward", true);
         }
     }
 }
