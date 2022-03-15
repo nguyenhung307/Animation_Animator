@@ -34,7 +34,8 @@ public class PlayerMovement : MonoBehaviour
     {
         float horizontal = Input.GetAxis("Horizontal") ;
         float vertical = Input.GetAxis("Vertical") ;
-        ControllerAni(horizontal,vertical);
+        
+        _animator.SetFloat("Vertical",horizontal);
         if(vertical != 0){
             _currentSpeed += Time.deltaTime * vertical;
             _currentSpeed = Mathf.Clamp(_currentSpeed, -_maxSpeed, _maxSpeed);
@@ -51,7 +52,7 @@ public class PlayerMovement : MonoBehaviour
         }
         _animator.SetFloat("_speed", _currentSpeed );
         
-         Vector3 moveDir = _cam.transform.right * horizontal * _currentSpeed * Time.deltaTime + _cam.transform.forward * _currentSpeed * Time.deltaTime;
+         Vector3 moveDir = _cam.transform.right * horizontal * 10 * Time.deltaTime + _cam.transform.forward *  _currentSpeed * Time.deltaTime;
          moveDir.y = 0f;
 
          _controller.Move(moveDir);
@@ -92,21 +93,6 @@ public class PlayerMovement : MonoBehaviour
         {  
 
             _animator.SetTrigger("isFallingBackward");
-        }
-    }
-
-    public void ControllerAni(float horizontal, float vertical){
-        if(horizontal > 0){
-            _animator.SetBool("move_left", true);
-        }
-        else if(horizontal < 0){
-            _animator.SetBool("move_right",true );
-        }
-        if( vertical > 0){
-            _animator.SetBool("move_forward", true);
-        }
-        if(vertical < 0){
-            _animator.SetBool("move_backward", true);
         }
     }
 }

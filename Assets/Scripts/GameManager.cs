@@ -47,6 +47,7 @@ public class GameManager : MonoBehaviour
 
     public void PauseGame()
     {
+        Cursor.lockState = CursorLockMode.Confined;
         _gameIsPause = true;
         _pauseMenu.SetActive(true);
         Time.timeScale = 0f;
